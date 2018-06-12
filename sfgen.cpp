@@ -347,11 +347,23 @@ void write_png_file(char *file_name)
     fclose(fp);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
+    if (argc < 3) {
+        printf("Usage: %s [eng_font_file] [kor_font_file]\n", argv[0]);
+        return 0;
+    }
+
     load_ksc5601("KSC5601.txt");
-    load_font_eng("dosfonts/HMDEF.ENG");
-    load_font_kor("dosfonts/H05.HAN");
-    write_png_file("gogo.png");
+    load_font_eng(argv[1]);
+    load_font_kor(argv[2]);
+
+    if (argc == 4) {
+        write_png_file(argv[3]);
+    }
+    else {
+        write_png_file("result.png");
+    }
+    
     return 0;
 }
