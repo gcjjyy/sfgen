@@ -292,26 +292,35 @@ void write_png_file(char *file_name)
         uint16_t joong = ((code % (21 * 28)) / 28) + 1;
         uint16_t jong = code % 28;
 
+        uint16_t index = 0;
+
         if (!jong)
         {
-            cho += choType[joong] * 20;
-            put_glyph_kor(x, y, &font_kor[cho * 32]);
+            index = cho + (choType[joong] * 20);
+            put_glyph_kor(x, y, &font_kor[index * 32]);
 
-            // Todo: Make sure the joong
-            joong += JOONG_INDEX;
-            put_glyph_kor(x, y, &font_kor[joong * 32]);
+            index = JOONG_INDEX + joong;
+            if (cho != 1 && cho != 24) {
+                index += 22;
+            }
+            put_glyph_kor(x, y, &font_kor[index * 32]);
         }
         else
         {
-            cho += choTypeJong[joong] * 20;
-            put_glyph_kor(x, y, &font_kor[cho * 32]);
+            index = cho + choTypeJong[joong] * 20;
+            put_glyph_kor(x, y, &font_kor[index * 32]);
 
-            jong += JONG_INDEX + (jongType[joong] * 28);
-            put_glyph_kor(x, y, &font_kor[jong * 32]);
+            index = JOONG_INDEX + joong;
+            if (cho != 1 && cho != 24) {
+                index += 22 * 3;
+            }
+            else {
+                index += 22 * 2;
+            }
+            put_glyph_kor(x, y, &font_kor[index * 32]);
 
-            // Todo: Make sure the joong
-            joong += JOONG_INDEX + (22 * 2);
-            put_glyph_kor(x, y, &font_kor[joong * 32]);
+            index = JONG_INDEX + jong + (jongType[joong] * 28);
+            put_glyph_kor(x, y, &font_kor[index * 32]);
         }
 
         x += 16;
@@ -341,8 +350,8 @@ void write_png_file(char *file_name)
 int main()
 {
     load_ksc5601("KSC5601.txt");
-    load_font_eng("dosfonts/SYS.ENG");
-    load_font_kor("dosfonts/IYG.HAN");
+    load_font_eng("dosfonts/HMDEF.ENG");
+    load_font_kor("dosfonts/H05.HAN");
     write_png_file("gogo.png");
     return 0;
 }
