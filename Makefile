@@ -5,5 +5,11 @@ TARGET = sfgen
 CPPFLAGS = -std=c++11
 LDFLAGS = -lpng
 
-$(TARGET) : 
-	$(CC) $(CPPFLAGS)
+CPPFILES = sfgen.cpp
+
+$(TARGET) : $(CPPFILES)
+	$(CC) -o $(TARGET) $(CPPFLAGS) $(LDFLAGS) $(CPPFILES)
+
+clean:
+	rm $(TARGET)
+	rm *.o
