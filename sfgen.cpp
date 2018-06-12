@@ -16,7 +16,8 @@ png_infop info_ptr;
 int number_of_passes;
 png_bytep *row_pointers;
 
-uint8_t glyphs[11520];
+uint8_t font_eng[4096];
+uint8_t font_kor[11520];
 uint8_t ksc5601[7146];
 
 std::vector<uint16_t> kor;
@@ -24,7 +25,7 @@ std::vector<uint8_t> eng;
 
 // 0  1   2  3   4  5   6  7  8   9  10  11 12
 // ㅏ, ㅐ, ㅑ, ㅒ, ㅓ, ㅔ, ㅕ, ㅖ, ㅗ, ㅘ, ㅙ, ㅚ, ㅛ,
-// 13 14 15 16   17 18 19 20 
+// 13 14 15 16   17 18 19 20
 // ㅜ, ㅝ, ㅞ, ㅟ, ㅠ, ㅡ, ㅢ, ㅣ
 
 unsigned char choType[] = {
@@ -50,7 +51,7 @@ unsigned char choType[] = {
     1, // 18 ㅡ
     3, // 19 ㅢ
     0, // 20 ㅣ
-    };
+};
 
 unsigned char choTypeJong[] = {
     0,
@@ -102,7 +103,6 @@ unsigned char jongType[] = {
     1, // 20 ㅣ
 };
 
-
 void abort_(const char *s, ...)
 {
     va_list args;
@@ -130,12 +130,13 @@ void load_ksc5601(char *file_name)
     fread(ksc5601, sizeof(uint8_t), 7146, fp);
     fclose(fp);
 
-    for (int i = 0; i < 7146; i++)
+    for (int i = 0; i < 7146;)
     {
         // ENG
-        if ((ksc5601[i] & 0x7f) == 0x7f)
+        if (ksc5601[i] < 0x80)
         {
             eng.push_back((uint8_t)(ksc5601[i] & 0x7f));
+            i++;
         }
         // KOR
         else if (((ksc5601[i] & 0xe0) == 0xe0) &&
@@ -150,18 +151,41 @@ void load_ksc5601(char *file_name)
             lobyte |= (ksc5601[i + 2] & 0x3f);
 
             kor.push_back((uint16_t)(hibyte << 8) + lobyte);
+
+            i += 3;
         }
     }
 }
 
-void load_font_16(char *file_name)
+void load_font_eng(char *file_name)
 {
     FILE *fp = fopen(file_name, "rb");
-    fread(glyphs, sizeof(uint8_t), 11520, fp);
+    fread(font_eng, sizeof(uint8_t), 4096, fp);
     fclose(fp);
 }
 
-void put_glyph_32(int x, int y, uint8_t glyph[32])
+void load_font_kor(char *file_name)
+{
+    FILE *fp = fopen(file_name, "rb");
+    fread(font_kor, sizeof(uint8_t), 11520, fp);
+    fclose(fp);
+}
+
+void put_glyph_eng(int x, int y, uint8_t glyph[16])
+{
+    for (int i = 0; i < 16; i++)
+    {
+        for (int j = 0; j < 8; j++)
+        {
+            if (glyph[i] & (0x80 >> j))
+            {
+                set_pixel(x + j, y + i, 0x000000ff);
+            }
+        }
+    }
+}
+
+void put_glyph_kor(int x, int y, uint8_t glyph[32])
 {
     for (int i = 0; i < 16; i++)
     {
@@ -232,6 +256,34 @@ void write_png_file(char *file_name)
 
     x = 0;
     y = 0;
+
+    FILE *spacing = fopen("Spacing.txt", "w");
+
+    printf("Total English Character Size: %lu\n", eng.size());
+    fprintf(spacing, "[[8, \"");
+    for (size_t i = 0; i < eng.size(); i++)
+    {
+        put_glyph_eng(x, y, &font_eng[eng[i] * 16]);
+
+        x += 16;
+        if (x >= 1024)
+        {
+            x = 0;
+            y += 16;
+        }
+
+        if (eng[i] == '\\' || eng[i] == '\"')
+        {
+            fprintf(spacing, "\\%c", eng[i]);
+        }
+        else
+        {
+            fprintf(spacing, "%c", eng[i]);
+        }
+    }
+    fprintf(spacing, "\"]]");
+    fclose(spacing);
+
     printf("Total Korean Character Size: %lu\n", kor.size());
     for (size_t i = 0; i < kor.size(); i++)
     {
@@ -240,24 +292,26 @@ void write_png_file(char *file_name)
         uint16_t joong = ((code % (21 * 28)) / 28) + 1;
         uint16_t jong = code % 28;
 
-        if (!jong) {
+        if (!jong)
+        {
             cho += choType[joong] * 20;
-            put_glyph_32(x, y, &glyphs[cho * 32]);
+            put_glyph_kor(x, y, &font_kor[cho * 32]);
 
             // Todo: Make sure the joong
             joong += JOONG_INDEX;
-            put_glyph_32(x, y, &glyphs[joong * 32]);
+            put_glyph_kor(x, y, &font_kor[joong * 32]);
         }
-        else {
+        else
+        {
             cho += choTypeJong[joong] * 20;
-            put_glyph_32(x, y, &glyphs[cho * 32]);
+            put_glyph_kor(x, y, &font_kor[cho * 32]);
 
             jong += JONG_INDEX + (jongType[joong] * 28);
-            put_glyph_32(x, y, &glyphs[jong * 32]);
+            put_glyph_kor(x, y, &font_kor[jong * 32]);
 
             // Todo: Make sure the joong
             joong += JOONG_INDEX + (22 * 2);
-            put_glyph_32(x, y, &glyphs[joong * 32]);
+            put_glyph_kor(x, y, &font_kor[joong * 32]);
         }
 
         x += 16;
@@ -287,7 +341,8 @@ void write_png_file(char *file_name)
 int main()
 {
     load_ksc5601("KSC5601.txt");
-    load_font_16("dosfonts/IYG.HAN");
+    load_font_eng("dosfonts/SYS.ENG");
+    load_font_kor("dosfonts/IYG.HAN");
     write_png_file("gogo.png");
     return 0;
 }
