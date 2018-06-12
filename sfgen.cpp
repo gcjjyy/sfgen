@@ -29,6 +29,29 @@ void set_pixel(int x, int y, uint32_t color) {
     row_pointers[y][x*4+3] = (png_byte)((color & 0x000000ff) >> 0);
 }
 
+uint8_t glyphs[11520];
+
+void load_font_16(char *file_name) {
+    FILE *fp = fopen(file_name, "rb");
+    fread(glyphs, sizeof(uint8_t), 11520, fp);
+    fclose(fp);
+}
+
+void put_glyph_32(int x, int y, uint8_t glyph[32]) {
+    for (int i = 0; i < 16; i++) {
+        for (int j = 0; j < 8; j++) {
+            if (glyph[i << 1] & (0x80 >> j)) {
+                set_pixel(x + j, y + i, 0x000000ff);
+            }
+        }
+        for (int j = 0; j < 8; j++) {
+            if (glyph[(i << 1) + 1] & (0x80 >> j)) {
+                set_pixel(x + 8 + j, y + i, 0x000000ff);
+            }
+        }
+    }
+}
+
 void write_png_file(char *file_name)
 {
     width = 1024;
@@ -76,8 +99,13 @@ void write_png_file(char *file_name)
     if (setjmp(png_jmpbuf(png_ptr)))
         abort_("[write_png_file] Error during writing bytes");
 
-    for (y = 0; y < height; y++) {
-        set_pixel(y, y, 0x0000ffff);
+    load_font_16("dosfonts/IYG.HAN");
+    for (int i = 0; i < 32; i++) {
+        for(int j = 0; j < 32; j++) {
+            int glyphIndex = i * 32 + j;
+            if (glyphIndex >= 360) break;
+            put_glyph_32(j * 16, i * 16, &glyphs[glyphIndex * 32]);
+        }
     }
 
     png_write_image(png_ptr, row_pointers);
