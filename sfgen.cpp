@@ -299,7 +299,7 @@ void write_png_file(char *file_name)
     {
         if (kor[i] >= 0x3130 && kor[i] <= 0x318f) {
             uint16_t code = kor[i] - 0x3130 - 1;
-            put_glyph_kor(x, y, &font_kor[jamoTable[code] * 32]);
+            put_glyph_kor(x, y, &font_kor[(jamoTable[code] + (20 * 3)) * 32]);
         }
         else if (kor[i] >= 0xac00 && kor[i] <= 0xd7af) {
             uint16_t code = kor[i] - 0xac00;
