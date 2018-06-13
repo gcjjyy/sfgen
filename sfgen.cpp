@@ -18,7 +18,7 @@ png_bytep *row_pointers;
 
 uint8_t font_eng[4096];
 uint8_t font_kor[11520];
-uint8_t ksc5601[7146];
+uint8_t *ksc5601;
 
 std::vector<uint16_t> kor;
 std::vector<uint8_t> eng;
@@ -103,6 +103,10 @@ unsigned char jongType[] = {
     1, // 20 ㅣ
 };
 
+unsigned char jamoTable[] = {
+    1, 2, 0, 3, 0, 0, 4, 5, 6, 0, 0, 0, 0, 0, 0, 0, 7, 8, 9, 0, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19
+};
+
 void abort_(const char *s, ...)
 {
     va_list args;
@@ -127,10 +131,14 @@ void load_ksc5601(char *file_name)
     uint8_t lobyte = 0;
 
     FILE *fp = fopen(file_name, "rb");
-    fread(ksc5601, sizeof(uint8_t), 7146, fp);
+    fseek(fp, 0L, SEEK_END);
+    long fileSize = ftell(fp);
+    fseek(fp, 0L, SEEK_SET);
+    ksc5601 = new uint8_t[fileSize];
+    fread(ksc5601, sizeof(uint8_t), fileSize, fp);
     fclose(fp);
 
-    for (int i = 0; i < 7146;)
+    for (int i = 0; i < fileSize;)
     {
         // ENG
         if (ksc5601[i] < 0x80)
@@ -155,6 +163,8 @@ void load_ksc5601(char *file_name)
             i += 3;
         }
     }
+
+    delete [] ksc5601;
 }
 
 void load_font_eng(char *file_name)
@@ -287,40 +297,46 @@ void write_png_file(char *file_name)
     printf("Total Korean Character Size: %lu\n", kor.size());
     for (size_t i = 0; i < kor.size(); i++)
     {
-        uint16_t code = kor[i] - 0xac00;
-        uint16_t cho = (code / 21 / 28) + 1;
-        uint16_t joong = ((code % (21 * 28)) / 28) + 1;
-        uint16_t jong = code % 28;
-
-        uint16_t index = 0;
-
-        if (!jong)
-        {
-            index = cho + (choType[joong] * 20);
-            put_glyph_kor(x, y, &font_kor[index * 32]);
-
-            index = JOONG_INDEX + joong;
-            if (cho != 1 && cho != 24) {
-                index += 22;
-            }
-            put_glyph_kor(x, y, &font_kor[index * 32]);
+        if (kor[i] >= 0x3130 && kor[i] <= 0x318f) {
+            uint16_t code = kor[i] - 0x3130 - 1;
+            put_glyph_kor(x, y, &font_kor[jamoTable[code] * 32]);
         }
-        else
-        {
-            index = cho + choTypeJong[joong] * 20;
-            put_glyph_kor(x, y, &font_kor[index * 32]);
+        else if (kor[i] >= 0xac00 && kor[i] <= 0xd7af) {
+            uint16_t code = kor[i] - 0xac00;
+            uint16_t cho = (code / 21 / 28) + 1;
+            uint16_t joong = ((code % (21 * 28)) / 28) + 1;
+            uint16_t jong = code % 28;
 
-            index = JOONG_INDEX + joong;
-            if (cho != 1 && cho != 24) {
-                index += 22 * 3;
-            }
-            else {
-                index += 22 * 2;
-            }
-            put_glyph_kor(x, y, &font_kor[index * 32]);
+            uint16_t index = 0;
 
-            index = JONG_INDEX + jong + (jongType[joong] * 28);
-            put_glyph_kor(x, y, &font_kor[index * 32]);
+            if (!jong)
+            {
+                index = cho + (choType[joong] * 20);
+                put_glyph_kor(x, y, &font_kor[index * 32]);
+
+                index = JOONG_INDEX + joong;
+                if (cho != 1 && cho != 24) {
+                    index += 22;
+                }
+                put_glyph_kor(x, y, &font_kor[index * 32]);
+            }
+            else
+            {
+                index = cho + choTypeJong[joong] * 20;
+                put_glyph_kor(x, y, &font_kor[index * 32]);
+
+                index = JOONG_INDEX + joong;
+                if (cho != 1 && cho != 24) {
+                    index += 22 * 3;
+                }
+                else {
+                    index += 22 * 2;
+                }
+                put_glyph_kor(x, y, &font_kor[index * 32]);
+
+                index = JONG_INDEX + jong + (jongType[joong] * 28);
+                put_glyph_kor(x, y, &font_kor[index * 32]);
+            }
         }
 
         x += 16;
