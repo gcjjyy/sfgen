@@ -17,7 +17,7 @@ $ make
 ```
 
 # Sample result image
-![Sample](https://2.bp.blogspot.com/-DmgfJXnTH3g/WyGLRJ4uCSI/AAAAAAAAAOY/D-KRehuo89w60dCjQI-eRSvll2dlB5HbwCLcBGAs/s1600/result.png)
+![Sample](https://2.bp.blogspot.com/-4Xz9DC90tsc/WyGVePjMifI/AAAAAAAAAOs/4ZNVm2owS1sN7KRXQc80VWMYQf34CDBsACLcBGAs/s1600/result.png)
 
 # License
 Distributed under MIT license. See LICENSE file.
