@@ -130,7 +130,7 @@ void load_ksc5601(char *file_name)
     uint8_t hibyte = 0;
     uint8_t lobyte = 0;
 
-    FILE *fp = fopen(file_name, "rb");
+    FILE *fp = fopen(file_name, "r");
     fseek(fp, 0L, SEEK_END);
     long fileSize = ftell(fp);
     fseek(fp, 0L, SEEK_SET);
@@ -141,7 +141,7 @@ void load_ksc5601(char *file_name)
     for (int i = 0; i < fileSize;)
     {
         // ENG
-        if (ksc5601[i] < 0x80)
+        if (ksc5601[i] >= 0x20 && ksc5601[i] < 0x80)
         {
             eng.push_back((uint8_t)(ksc5601[i] & 0x7f));
             i++;
@@ -161,6 +161,9 @@ void load_ksc5601(char *file_name)
             kor.push_back((uint16_t)(hibyte << 8) + lobyte);
 
             i += 3;
+        }
+        else {
+            i++;
         }
     }
 
