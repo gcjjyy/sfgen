@@ -24,7 +24,7 @@ $ make
 ```
 
 # Sample result image
-![Sample](https://2.bp.blogspot.com/-4Xz9DC90tsc/WyGVePjMifI/AAAAAAAAAOs/4ZNVm2owS1sN7KRXQc80VWMYQf34CDBsACLcBGAs/s1600/result.png)
+![Sample](https://1.bp.blogspot.com/-uvCxTqeLWbg/WyKGyW0TvtI/AAAAAAAAAPI/pRIVgKL78S4Pknuc_zggjLbf5Q280ZmtgCLcBGAs/s1600/result.png)
 
 # License
 Distributed under MIT license. See LICENSE file.
