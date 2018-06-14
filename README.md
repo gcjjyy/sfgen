@@ -6,9 +6,15 @@ Using old-dos style Korean Combination 8x4x4 font(11520 bytes) and 256 english f
   - PNG file is generated(Default filename: result.png)
   - Spacing Data file is generated(Filename: Spacing.txt)
 
-# Pre requsites
+# Prerequsites
+Mac OS
 ```sh
-brew install libpng
+$ brew install libpng
+```
+
+Ubuntu
+```sh
+$ sudo apt install libpng
 ```
 
 # Build
