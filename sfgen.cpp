@@ -296,7 +296,7 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    load_ksc5601("KSC5601.txt");
+    load_ksc5601("CHARLIST.txt");
     load_font_eng(argv[1]);
     load_font_kor(argv[2]);
 
