@@ -8,7 +8,7 @@ LDFLAGS = -lpng
 CPPFILES = sfgen.cpp
 
 $(TARGET) : $(CPPFILES)
-	$(CC) -o $(TARGET) $(CPPFLAGS) $(LDFLAGS) $(CPPFILES)
+	$(CC) -o $(TARGET) $(CPPFLAGS) $(CPPFILES) $(LDFLAGS)
 
 clean:
 	rm $(TARGET)
