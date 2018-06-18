@@ -15,7 +15,7 @@ $ brew install libpng
 
 Ubuntu
 ```sh
-$ sudo apt install libpng
+$ sudo apt install libpng-dev
 ```
 
 # Build

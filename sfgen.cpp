@@ -1,6 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <png.h>
+#include <stdarg.h>
+#include <memory.h>
 
 #define JOONG_INDEX (160)
 #define JONG_INDEX (160 + 88)
@@ -23,88 +25,24 @@ uint8_t *ksc5601;
 std::vector<uint16_t> kor;
 std::vector<uint8_t> eng;
 
-// 0  1   2  3   4  5   6  7  8   9  10  11 12
-// ㅏ, ㅐ, ㅑ, ㅒ, ㅓ, ㅔ, ㅕ, ㅖ, ㅗ, ㅘ, ㅙ, ㅚ, ㅛ,
-// 13 14 15 16   17 18 19 20
-// ㅜ, ㅝ, ㅞ, ㅟ, ㅠ, ㅡ, ㅢ, ㅣ
-
-unsigned char choType[] = {
-    0,
-    0, // 0 ㅏ
-    0, // 1 ㅐ
-    0, // 2 ㅑ
-    0, // 3 ㅒ
-    0, // 4 ㅓ
-    0, // 5 ㅔ
-    0, // 6 ㅕ
-    0, // 7 ㅖ
-    1, // 8 ㅗ
-    3, // 9 ㅘ
-    3, // 10 ㅙ
-    3, // 11 ㅚ
-    1, // 12 ㅛ
-    2, // 13 ㅜ
-    4, // 14 ㅝ
-    4, // 15 ㅞ
-    4, // 16 ㅟ
-    2, // 17 ㅠ
-    1, // 18 ㅡ
-    3, // 19 ㅢ
-    0, // 20 ㅣ
+const char g_choseongType[] = {
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 3,
+    3, 3, 1, 2, 4, 4, 4, 2, 1, 3, 0
 };
 
-unsigned char choTypeJong[] = {
-    0,
-    5, // 0 ㅏ
-    5, // 1 ㅐ
-    5, // 2 ㅑ
-    5, // 3 ㅒ
-    5, // 4 ㅓ
-    5, // 5 ㅔ
-    5, // 6 ㅕ
-    5, // 7 ㅖ
-    6, // 8 ㅗ
-    7, // 9 ㅘ
-    7, // 10 ㅙ
-    7, // 11 ㅚ
-    6, // 12 ㅛ
-    6, // 13 ㅜ
-    7, // 14 ㅝ
-    7, // 15 ㅞ
-    7, // 16 ㅟ
-    6, // 17 ㅠ
-    6, // 18 ㅡ
-    7, // 19 ㅢ
-    5, // 20 ㅣ
+const char g_choseongTypeJongseongExist[] = {
+    0, 5, 5, 5, 5, 5, 5, 5, 5, 6, 7,
+    7, 7, 6, 6, 7, 7, 7, 6, 6, 7, 5
 };
 
-unsigned char jongType[] = {
-    0,
-    0, // 0 ㅏ
-    2, // 1 ㅐ
-    0, // 2 ㅑ
-    2, // 3 ㅒ
-    1, // 4 ㅓ
-    2, // 5 ㅔ
-    1, // 6 ㅕ
-    2, // 7 ㅖ
-    3, // 8 ㅗ
-    0, // 9 ㅘ
-    2, // 10 ㅙ
-    1, // 11 ㅚ
-    3, // 12 ㅛ
-    3, // 13 ㅜ
-    1, // 14 ㅝ
-    2, // 15 ㅞ
-    1, // 16 ㅟ
-    3, // 17 ㅠ
-    3, // 18 ㅡ
-    1, // 19 ㅢ
-    1, // 20 ㅣ
+const char g_jongseongType[] = {
+    0, 0, 2, 0, 2, 1, 2, 1, 2, 3, 0,
+    2, 1, 3, 3, 1, 2, 1, 3, 3, 1, 1
 };
 
-unsigned char jamoTable[] = {
-    1, 2, 0, 3, 0, 0, 4, 5, 6, 0, 0, 0, 0, 0, 0, 0, 7, 8, 9, 0, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19
+unsigned char g_jamoTable[] = {
+    1, 2, 0, 3, 0, 0, 4, 5, 6, 0, 0, 0, 0, 0, 0, 0, 7,
+    8, 9, 0, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19
 };
 
 void abort_(const char *s, ...)
@@ -162,12 +100,13 @@ void load_ksc5601(char *file_name)
 
             i += 3;
         }
-        else {
+        else
+        {
             i++;
         }
     }
 
-    delete [] ksc5601;
+    delete[] ksc5601;
 }
 
 void load_font_eng(char *file_name)
@@ -258,7 +197,7 @@ void write_png_file(char *file_name)
     for (y = 0; y < height; y++)
     {
         row_pointers[y] = (png_byte *)malloc(png_get_rowbytes(png_ptr, info_ptr));
-        memset(row_pointers[y], 0, png_get_rowbytes(png_ptr, info_ptr));
+        memset(row_pointers[y], 0xff, png_get_rowbytes(png_ptr, info_ptr));
     }
 
     png_write_info(png_ptr, info_ptr);
@@ -300,45 +239,28 @@ void write_png_file(char *file_name)
     printf("Total Korean Character Size: %lu\n", kor.size());
     for (size_t i = 0; i < kor.size(); i++)
     {
-        if (kor[i] >= 0x3130 && kor[i] <= 0x318f) {
+        if (kor[i] >= 0x3130 && kor[i] <= 0x318f)
+        {
             uint16_t code = kor[i] - 0x3130 - 1;
-            put_glyph_kor(x, y, &font_kor[(jamoTable[code] + (20 * 3)) * 32]);
+            put_glyph_kor(x, y, &font_kor[(g_jamoTable[code] + (20 * 3)) * 32]);
         }
-        else if (kor[i] >= 0xac00 && kor[i] <= 0xd7af) {
-            uint16_t code = kor[i] - 0xac00;
-            uint16_t cho = (code / 21 / 28) + 1;
-            uint16_t joong = ((code % (21 * 28)) / 28) + 1;
-            uint16_t jong = code % 28;
+        else if (kor[i] >= 0xac00 && kor[i] <= 0xd7af)
+        {
+            uint16_t index = kor[i] - 0xac00;
 
-            uint16_t index = 0;
+            uint16_t choseong = ((index / 28) / 21) + 1;
+            uint16_t joongseong = ((index / 28) % 21) + 1;
+            uint16_t jongseong = index % 28;
 
-            if (!jong)
-            {
-                index = cho + (choType[joong] * 20);
-                put_glyph_kor(x, y, &font_kor[index * 32]);
+            int32_t cho_type = (jongseong) ? g_choseongTypeJongseongExist[joongseong] : g_choseongType[joongseong];
+            int32_t joong_type = ((choseong == 1 || choseong == 16) ? 0 : 1) + (jongseong ? 2 : 0);
+            int32_t jong_type = g_jongseongType[joongseong];
 
-                index = JOONG_INDEX + joong;
-                if (cho != 1 && cho != 24) {
-                    index += 22;
-                }
-                put_glyph_kor(x, y, &font_kor[index * 32]);
-            }
-            else
-            {
-                index = cho + choTypeJong[joong] * 20;
-                put_glyph_kor(x, y, &font_kor[index * 32]);
+            put_glyph_kor(x, y, &font_kor[(cho_type * 20 + choseong) * 32]);
+            put_glyph_kor(x, y, &font_kor[(JOONG_INDEX + (joong_type * 22 + joongseong)) * 32]);
 
-                index = JOONG_INDEX + joong;
-                if (cho != 1 && cho != 24) {
-                    index += 22 * 3;
-                }
-                else {
-                    index += 22 * 2;
-                }
-                put_glyph_kor(x, y, &font_kor[index * 32]);
-
-                index = JONG_INDEX + jong + (jongType[joong] * 28);
-                put_glyph_kor(x, y, &font_kor[index * 32]);
+            if (jongseong) {
+                put_glyph_kor(x, y, &font_kor[(JONG_INDEX + (jong_type * 28 + jongseong)) * 32]);
             }
         }
 
@@ -368,7 +290,8 @@ void write_png_file(char *file_name)
 
 int main(int argc, char *argv[])
 {
-    if (argc < 3) {
+    if (argc < 3)
+    {
         printf("Usage: %s [eng_font_file] [kor_font_file]\n", argv[0]);
         return 0;
     }
@@ -377,12 +300,14 @@ int main(int argc, char *argv[])
     load_font_eng(argv[1]);
     load_font_kor(argv[2]);
 
-    if (argc == 4) {
+    if (argc == 4)
+    {
         write_png_file(argv[3]);
     }
-    else {
+    else
+    {
         write_png_file("result.png");
     }
-    
+
     return 0;
 }
