@@ -22,6 +22,9 @@ uint8_t font_eng[4096];
 uint8_t font_kor[11520];
 uint8_t *ksc5601;
 
+uint32_t font_color = 0x000000ff;
+uint32_t background_color = 0x00000000;
+
 std::vector<uint16_t> kor;
 std::vector<uint8_t> eng;
 
@@ -131,7 +134,7 @@ void put_glyph_eng(int x, int y, uint8_t glyph[16])
         {
             if (glyph[i] & (0x80 >> j))
             {
-                set_pixel(x + j, y + i, 0x000000ff);
+                set_pixel(x + j, y + i, font_color);
             }
         }
     }
@@ -145,14 +148,14 @@ void put_glyph_kor(int x, int y, uint8_t glyph[32])
         {
             if (glyph[i << 1] & (0x80 >> j))
             {
-                set_pixel(x + j, y + i, 0x000000ff);
+                set_pixel(x + j, y + i, font_color);
             }
         }
         for (int j = 0; j < 8; j++)
         {
             if (glyph[(i << 1) + 1] & (0x80 >> j))
             {
-                set_pixel(x + 8 + j, y + i, 0x000000ff);
+                set_pixel(x + 8 + j, y + i, font_color);
             }
         }
     }
@@ -196,8 +199,12 @@ void write_png_file(char *file_name)
     row_pointers = (png_bytep *)malloc(sizeof(png_bytep) * height);
     for (y = 0; y < height; y++)
     {
-        row_pointers[y] = (png_byte *)malloc(png_get_rowbytes(png_ptr, info_ptr));
-        memset(row_pointers[y], 0x00, png_get_rowbytes(png_ptr, info_ptr));
+        size_t size = png_get_rowbytes(png_ptr, info_ptr);
+        row_pointers[y] = (png_byte *)malloc(size);
+
+        for (int i = 0; i < size / sizeof(uint32_t); i++) {
+            ((uint32_t *)row_pointers[y])[i] = ntohl(background_color);
+        }
     }
 
     png_write_info(png_ptr, info_ptr);
@@ -288,11 +295,20 @@ void write_png_file(char *file_name)
     fclose(fp);
 }
 
+void set_font_color(uint32_t color) {
+    font_color = color;
+}
+
+void set_background_color(uint32_t color) {
+    background_color = color;
+}
+
 int main(int argc, char *argv[])
 {
     if (argc < 3)
     {
-        printf("Usage: %s [eng_font_file] [kor_font_file]\n", argv[0]);
+        printf("Usage: %s eng_font_file kor_font_file [font_color] [background_color]\n", argv[0]);
+        printf("   ex) %s font.eng font.kor ffffffff 00000000\n");
         return 0;
     }
 
@@ -300,14 +316,14 @@ int main(int argc, char *argv[])
     load_font_eng(argv[1]);
     load_font_kor(argv[2]);
 
-    if (argc == 4)
-    {
-        write_png_file(argv[3]);
+    if (argc >= 4) {
+        set_font_color((uint32_t)strtol(argv[3], NULL, 16));
+        if (argc >= 5) {
+            set_background_color((uint32_t)strtol(argv[4], NULL, 16));
+        }
     }
-    else
-    {
-        write_png_file("result.png");
-    }
+
+    write_png_file("result.png");
 
     return 0;
 }
