@@ -197,7 +197,7 @@ void write_png_file(char *file_name)
     for (y = 0; y < height; y++)
     {
         row_pointers[y] = (png_byte *)malloc(png_get_rowbytes(png_ptr, info_ptr));
-        memset(row_pointers[y], 0xff, png_get_rowbytes(png_ptr, info_ptr));
+        memset(row_pointers[y], 0x00, png_get_rowbytes(png_ptr, info_ptr));
     }
 
     png_write_info(png_ptr, info_ptr);
