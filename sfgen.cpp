@@ -30,11 +30,8 @@ std::vector<uint16_t> kor;
 std::vector<uint8_t> eng;
 
 const char g_choseongType[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 3, 3, 3, 1, 2, 4, 4, 4, 2, 1, 3, 0};
-
 const char g_choseongTypeJongseongExist[] = {0, 5, 5, 5, 5, 5, 5, 5, 5, 6, 7, 7, 7, 6, 6, 7, 7, 7, 6, 6, 7, 5};
-
 const char g_jongseongType[] = {0, 0, 2, 0, 2, 1, 2, 1, 2, 3, 0, 2, 1, 3, 3, 1, 2, 1, 3, 3, 1, 1};
-
 unsigned char g_jamoTable[] = {1, 2, 0, 3, 0, 0,  4,  5,  6,  0,  0,  0,  0,  0,  0,
 							   0, 7, 8, 9, 0, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19};
 
