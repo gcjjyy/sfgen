@@ -19,8 +19,8 @@ png_infop info_ptr;
 int number_of_passes;
 png_bytep *row_pointers;
 
-uint8_t font_eng[4096];
-uint8_t font_kor[11520];
+uint8_t font_eng[256][16];
+uint16_t font_kor[360][16];
 uint8_t *ksc5601;
 
 uint32_t font_color = 0x000000ff;
@@ -95,40 +95,41 @@ void load_ksc5601(char *file_name)
 
 void load_font_eng(char *file_name)
 {
-	FILE *fp = fopen(file_name, "rb");
-	fread(font_eng, sizeof(uint8_t), 4096, fp);
+	FILE *fp = fopen(file_name, "r");
+	for (int i = 0; i < 256; i++) {
+		fread(font_eng[i], sizeof(uint8_t), 16, fp);
+	}
 	fclose(fp);
 }
 
 void load_font_kor(char *file_name)
 {
-	FILE *fp = fopen(file_name, "rb");
-	fread(font_kor, sizeof(uint8_t), 11520, fp);
+	FILE *fp = fopen(file_name, "r");
+	for (int i = 0; i < 360; i++) {
+		fread(font_kor[i], sizeof(uint16_t), 16, fp);
+	}
 	fclose(fp);
 }
 
 void put_glyph_eng(int x, int y, uint8_t glyph[16])
 {
 	for (int i = 0; i < 16; i++) {
+		uint8_t row = glyph[i];
 		for (int j = 0; j < 8; j++) {
-			if (glyph[i] & (0x80 >> j)) {
+			if (row & (0x80 >> j)) {
 				set_pixel(x + j, y + i, font_color);
 			}
 		}
 	}
 }
 
-void put_glyph_kor(int x, int y, uint8_t glyph[32])
+void put_glyph_kor(int x, int y, uint16_t glyph[16])
 {
 	for (int i = 0; i < 16; i++) {
-		for (int j = 0; j < 8; j++) {
-			if (glyph[i << 1] & (0x80 >> j)) {
+		uint16_t row = htons(glyph[i]);
+		for (int j = 0; j < 16; j++) {
+			if (row & (0x8000 >> j)) {
 				set_pixel(x + j, y + i, font_color);
-			}
-		}
-		for (int j = 0; j < 8; j++) {
-			if (glyph[(i << 1) + 1] & (0x80 >> j)) {
-				set_pixel(x + 8 + j, y + i, font_color);
 			}
 		}
 	}
@@ -192,7 +193,7 @@ void write_png_file(char *file_name)
 	printf("Total English Character Size: %lu\n", eng.size());
 	fprintf(spacing, "[[8, \"");
 	for (size_t i = 0; i < eng.size(); i++) {
-		put_glyph_eng(x, y, &font_eng[eng[i] * 16]);
+		put_glyph_eng(x, y, font_eng[eng[i]]);
 
 		x += 16;
 		if (x >= 1024) {
@@ -213,7 +214,7 @@ void write_png_file(char *file_name)
 	for (size_t i = 0; i < kor.size(); i++) {
 		if (kor[i] >= 0x3130 && kor[i] <= 0x318f) {
 			uint16_t code = kor[i] - 0x3130 - 1;
-			put_glyph_kor(x, y, &font_kor[(g_jamoTable[code] + (20 * 3)) * 32]);
+			put_glyph_kor(x, y, font_kor[g_jamoTable[code] + (20 * 3)]);
 		} else if (kor[i] >= 0xac00 && kor[i] <= 0xd7af) {
 			uint16_t index = kor[i] - 0xac00;
 
@@ -225,11 +226,11 @@ void write_png_file(char *file_name)
 			int32_t joong_type = ((choseong == 1 || choseong == 16) ? 0 : 1) + (jongseong ? 2 : 0);
 			int32_t jong_type = g_jongseongType[joongseong];
 
-			put_glyph_kor(x, y, &font_kor[(cho_type * 20 + choseong) * 32]);
-			put_glyph_kor(x, y, &font_kor[(JOONG_INDEX + (joong_type * 22 + joongseong)) * 32]);
+			put_glyph_kor(x, y, font_kor[cho_type * 20 + choseong]);
+			put_glyph_kor(x, y, font_kor[JOONG_INDEX + (joong_type * 22 + joongseong)]);
 
 			if (jongseong) {
-				put_glyph_kor(x, y, &font_kor[(JONG_INDEX + (jong_type * 28 + jongseong)) * 32]);
+				put_glyph_kor(x, y, font_kor[JONG_INDEX + (jong_type * 28 + jongseong)]);
 			}
 		}
 
@@ -270,7 +271,7 @@ int main(int argc, char *argv[])
 {
 	if (argc < 3) {
 		printf("Usage: %s eng_font_file kor_font_file [font_color] [background_color]\n", argv[0]);
-		printf("   ex) %s font.eng font.kor ffffffff 00000000\n");
+		printf("   ex) %s font.eng font.kor ffffffff 00000000\n", argv[0]);
 		return 0;
 	}
 
