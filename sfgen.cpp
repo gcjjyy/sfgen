@@ -96,7 +96,7 @@ void load_ksc5601(char *file_name)
 
             uint16_t code = (uint16_t)(hibyte << 8) + lobyte;
 
-            if (code >= 0xac00 && code <= 0xd7af) {
+            if ((code >= 0xac00 && code <= 0xd7af) || (code >= 0x3130 && code <= 0x318f) ) {
                 kor.push_back(code);
             }
 
