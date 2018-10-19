@@ -225,7 +225,7 @@ void write_png_file(char *file_name)
     }
 
     printf("Total Korean Character Size: %lu\n", kor.size());
-    for (size_t i = 0; i < kor.size(); i++) {
+    for (size_t i = 0; i < 2377; i++) {
         if (kor[i] >= 0x3130 && kor[i] <= 0x318f) {
             uint16_t code = kor[i] - 0x3130 - 1;
             put_glyph_double(x, y, font_kor[g_jamoTable[code] + (20 * 3)]);
