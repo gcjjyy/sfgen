@@ -24,7 +24,7 @@ $ make
 ```
 
 # Sample result image
-![Sample](https://1.bp.blogspot.com/-uvCxTqeLWbg/WyKGyW0TvtI/AAAAAAAAAPI/pRIVgKL78S4Pknuc_zggjLbf5Q280ZmtgCLcBGAs/s1600/result.png)
+![Sample](sfgen.png)
 
 # License
 Distributed under MIT license. See LICENSE file.
