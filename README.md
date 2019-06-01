@@ -24,7 +24,7 @@ $ make
 ```
 
 # Sample result image
-![Sample](sfgen.png)
+![Preview](sfgen.png)
 
 # License
 Distributed under MIT license. See LICENSE file.
