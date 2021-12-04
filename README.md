@@ -24,7 +24,8 @@ $ make
 ```
 
 # Sample result image
-![Preview](sfgen.png)
+![sfgen](https://user-images.githubusercontent.com/39606947/144691751-d919327d-b2ce-4f58-ac31-2a8ce6f96041.png)
+
 
 # License
 Distributed under MIT license. See LICENSE file.
